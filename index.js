@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // Database Setup
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.89rnkti.mongodb.net/?appName=Cluster0`;
 // console.log(uri);
 const client = new MongoClient(uri, {
@@ -37,6 +37,13 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+
+    app.get("/jobs/details/:id", async (req, res) => {
+      const query = { _id: new ObjectId(req.params.id) };
+      const result = await jobsCollection.findOne(query);
+      res.send(result);
+    });
+
     // ###########################################################
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
