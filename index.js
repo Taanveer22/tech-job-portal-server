@@ -31,6 +31,7 @@ async function run() {
     // ###########################################################
     const database = client.db("jobsDB");
     const jobsCollection = database.collection("jobsColl");
+    const applicationsCollection = database.collection("applications");
 
     app.get("/jobs", async (req, res) => {
       const cursor = jobsCollection.find();
@@ -44,6 +45,12 @@ async function run() {
       res.send(result);
     });
 
+    // ###########################################################
+    app.post("/application/apply/:id", async (req, res) => {
+      const doc = req.body;
+      const result = await applicationsCollection.insertOne(doc);
+      res.send(result);
+    });
     // ###########################################################
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
