@@ -28,11 +28,13 @@ async function run() {
     // Connect the client to the server
     await client.connect();
     console.log("mongodb connected");
+
     // ###########################################################
     const database = client.db("jobsDB");
     const jobsCollection = database.collection("jobsColl");
-    const applicationsCollection = database.collection("applications");
+    const applicationsCollection = database.collection("applicationsColl");
 
+    // ######################### JOBS ##################################
     app.get("/jobs", async (req, res) => {
       const cursor = jobsCollection.find();
       const result = await cursor.toArray();
@@ -45,12 +47,20 @@ async function run() {
       res.send(result);
     });
 
-    // ###########################################################
+    // ######################### APPLICATIONS ###############################
+    app.get("/application/me", async (req, res) => {
+      const query = { applicant_email: req.query.email };
+      const cursor = applicationsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.post("/application/apply/:id", async (req, res) => {
       const doc = req.body;
       const result = await applicationsCollection.insertOne(doc);
       res.send(result);
     });
+
     // ###########################################################
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
