@@ -48,29 +48,35 @@ async function run() {
     });
 
     // ######################### APPLICATIONS ###############################
-    app.get("/application/me", async (req, res) => {
+    app.get("/applications/me", async (req, res) => {
       const query = { applicant_email: req.query.email };
       const cursor = applicationsCollection.find(query);
       const result = await cursor.toArray();
       // aggregate data via loop
-      for (const appItem of result) {
-        // console.log(appItem.job_id);
-        const loopQuery = { _id: new ObjectId(appItem.job_id) };
+      for (const applicationItem of result) {
+        // console.log(applicationItem.job_id);
+        const loopQuery = { _id: new ObjectId(applicationItem.job_id) };
         const loopResult = await jobsCollection.findOne(loopQuery);
         if (loopResult) {
-          appItem.title = loopResult.title;
-          appItem.company = loopResult.company;
-          appItem.company_logo = loopResult.company_logo;
-          appItem.jobType = loopResult.jobType;
-          appItem.location = loopResult.location;
+          applicationItem.title = loopResult.title;
+          applicationItem.company = loopResult.company;
+          applicationItem.company_logo = loopResult.company_logo;
+          applicationItem.jobType = loopResult.jobType;
+          applicationItem.location = loopResult.location;
         }
       }
       res.send(result);
     });
 
-    app.post("/application/apply/:id", async (req, res) => {
+    app.post("/applications/apply/:id", async (req, res) => {
       const doc = req.body;
       const result = await applicationsCollection.insertOne(doc);
+      res.send(result);
+    });
+
+    app.delete("/applications/me/:id", async (req, res) => {
+      const query = { _id: new ObjectId(req.params.id) };
+      const result = await applicationsCollection.deleteOne(query);
       res.send(result);
     });
 
