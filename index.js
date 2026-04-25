@@ -1,7 +1,7 @@
 // required packages
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
 
 //App Setup
 const app = express();
@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // Database Setup
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.89rnkti.mongodb.net/?appName=Cluster0`;
 // console.log(uri);
 const client = new MongoClient(uri, {
@@ -27,28 +27,34 @@ async function run() {
   try {
     // Connect the client to the server
     await client.connect();
-    console.log("mongodb connected");
+    console.log('mongodb connected');
 
     // ###########################################################
-    const database = client.db("jobsDB");
-    const jobsCollection = database.collection("jobsColl");
-    const applicationsCollection = database.collection("applicationsColl");
+    const database = client.db('jobsDB');
+    const jobsCollection = database.collection('jobsColl');
+    const applicationsCollection = database.collection('applicationsColl');
 
-    // ######################### JOBS ##################################
-    app.get("/jobs", async (req, res) => {
+    // ######################       JOBS     ###########################
+    app.get('/jobs', async (req, res) => {
       const cursor = jobsCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
 
-    app.get("/jobs/details/:id", async (req, res) => {
+    app.post('/jobs', async (req, res) => {
+      const doc = req.body;
+      const result = await jobsCollection.insertOne(doc);
+      res.send(result);
+    });
+
+    app.get('/jobs/details/:id', async (req, res) => {
       const query = { _id: new ObjectId(req.params.id) };
       const result = await jobsCollection.findOne(query);
       res.send(result);
     });
 
-    // ######################### APPLICATIONS ###############################
-    app.get("/applications/me", async (req, res) => {
+    // ####################     APPLICATIONS    ########################
+    app.get('/applications/me', async (req, res) => {
       const query = { applicant_email: req.query.email };
       const cursor = applicationsCollection.find(query);
       const result = await cursor.toArray();
@@ -68,13 +74,13 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/applications/apply/:id", async (req, res) => {
+    app.post('/applications/apply/:id', async (req, res) => {
       const doc = req.body;
       const result = await applicationsCollection.insertOne(doc);
       res.send(result);
     });
 
-    app.delete("/applications/me/:id", async (req, res) => {
+    app.delete('/applications/me/:id', async (req, res) => {
       const query = { _id: new ObjectId(req.params.id) };
       const result = await applicationsCollection.deleteOne(query);
       res.send(result);
@@ -82,10 +88,8 @@ async function run() {
 
     // ###########################################################
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!",
-    );
+    await client.db('admin').command({ ping: 1 });
+    console.log('Pinged your deployment. You successfully connected to MongoDB!');
   } catch (error) {
     console.log(error);
   }
@@ -93,8 +97,8 @@ async function run() {
 run();
 
 //Root Route
-app.get("/", (req, res) => {
-  res.send("server is running");
+app.get('/', (req, res) => {
+  res.send('server is running');
 });
 
 //Server Start
