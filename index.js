@@ -81,6 +81,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/applications/review/:jobId', async (req, res) => {
+      const query = { job_id: req.params.jobId };
+      const result = await applicationsCollection.find(query).toArray();
+      res.send(result);
+    });
+
     app.post('/applications/apply/:id', async (req, res) => {
       const doc = req.body;
       const result = await applicationsCollection.insertOne(doc);
