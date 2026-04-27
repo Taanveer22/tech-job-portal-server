@@ -36,7 +36,14 @@ async function run() {
 
     // ######################       JOBS     ###########################
     app.get('/jobs', async (req, res) => {
-      const cursor = jobsCollection.find();
+      let email = req.query.email;
+      let query = {};
+      if (email) {
+        query = {
+          hr_email: email,
+        };
+      }
+      const cursor = jobsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -77,6 +84,23 @@ async function run() {
     app.post('/applications/apply/:id', async (req, res) => {
       const doc = req.body;
       const result = await applicationsCollection.insertOne(doc);
+      // aggregate applicationCount data
+      const query = { _id: new ObjectId(doc.job_id) };
+      const result2 = await jobsCollection.findOne(query);
+      // console.log(result2);
+      let count = 0;
+      if (result2.applicationCount) {
+        count = result2.applicationCount + 1;
+      } else {
+        count = 1;
+      }
+      const queryAgain = { _id: new ObjectId(doc.job_id) };
+      const updateDoc = {
+        $set: {
+          applicationCount: count,
+        },
+      };
+      const result3 = await jobsCollection.updateOne(queryAgain, updateDoc);
       res.send(result);
     });
 
