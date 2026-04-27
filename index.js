@@ -110,6 +110,18 @@ async function run() {
       res.send(result);
     });
 
+    app.patch('/applications/status/:id', async (req, res) => {
+      const doc = req.body;
+      const query = { _id: new ObjectId(req.params.id) };
+      const updateDoc = {
+        $set: {
+          status: doc.status,
+        },
+      };
+      const result = await applicationsCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
+
     app.delete('/applications/me/:id', async (req, res) => {
       const query = { _id: new ObjectId(req.params.id) };
       const result = await applicationsCollection.deleteOne(query);
