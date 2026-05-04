@@ -2,6 +2,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 //App Setup
 const app = express();
@@ -33,6 +34,13 @@ async function run() {
     const database = client.db('jobsDB');
     const jobsCollection = database.collection('jobsColl');
     const applicationsCollection = database.collection('applicationsColl');
+
+    // ######################       JWT    ###########################
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, 'secret', { expiresIn: '1h' });
+      res.send(token);
+    });
 
     // ######################       JOBS     ###########################
     app.get('/jobs', async (req, res) => {
