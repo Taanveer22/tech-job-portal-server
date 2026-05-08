@@ -19,6 +19,22 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+//Custom Middleware Setup
+const verifyToken = (req, res, next) => {
+  console.log('inside middleware', req.cookies, req?.cookies?.token);
+  const token = req?.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ message: 'Unauthorized Access' });
+  }
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+    if (error) {
+      return res.status(401).send({ message: 'Unauthorized Access' });
+    }
+    next();
+  });
+};
+
 // Database Setup
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.89rnkti.mongodb.net/?appName=Cluster0`;
@@ -35,7 +51,7 @@ async function run() {
   try {
     // Connect the client to the server
     await client.connect();
-    console.log('mongodb connected');
+    console.log('Checked mongodb connection');
 
     // ###########################################################
     const database = client.db('jobsDB');
@@ -45,7 +61,7 @@ async function run() {
     // ######################       JWT    ###########################
     app.post('/jwt', async (req, res) => {
       const userInfo = req.body;
-      const token = jwt.sign(userInfo, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+      const token = jwt.sign(userInfo, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
       res
         .cookie('token', token, {
           httpOnly: true,
@@ -81,11 +97,12 @@ async function run() {
     });
 
     // ####################     APPLICATIONS    ########################
-    app.get('/applications/me', async (req, res) => {
+    app.get('/applications/me', verifyToken, async (req, res) => {
       const query = { applicant_email: req.query.email };
       const cursor = applicationsCollection.find(query);
       const result = await cursor.toArray();
-      console.log('cuk cuk', req.cookies);
+      // console.log('cuk cuk', req.cookies);
+      console.log('inside api callback');
       // aggregate data via loop
       for (const applicationItem of result) {
         // console.log(applicationItem.job_id);
@@ -152,7 +169,7 @@ async function run() {
     // ###########################################################
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
-    console.log('Pinged your deployment. You successfully connected to MongoDB!');
+    console.log('Pinged your deployment');
   } catch (error) {
     console.log(error);
   }
