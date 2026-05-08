@@ -44,13 +44,12 @@ async function run() {
 
     // ######################       JWT    ###########################
     app.post('/jwt', async (req, res) => {
-      const user = req.body;
-      const token = jwt.sign(user, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+      const userInfo = req.body;
+      const token = jwt.sign(userInfo, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
       res
         .cookie('token', token, {
           httpOnly: true,
           secure: false,
-          sameSite: 'lax',
         })
         .send({ success: true });
     });
@@ -86,6 +85,7 @@ async function run() {
       const query = { applicant_email: req.query.email };
       const cursor = applicationsCollection.find(query);
       const result = await cursor.toArray();
+      console.log('cuk cuk', req.cookies);
       // aggregate data via loop
       for (const applicationItem of result) {
         // console.log(applicationItem.job_id);
