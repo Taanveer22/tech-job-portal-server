@@ -12,25 +12,30 @@ const PORT = process.env.PORT || 5000;
 //Middleware Setup
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173'],
     credentials: true,
   })
 );
 app.use(express.json());
 app.use(cookieParser());
 
-//Custom Middleware Setup
+//Custom Middleware Setup for JWT
 const verifyToken = (req, res, next) => {
-  console.log('inside middleware', req.cookies, req?.cookies?.token);
+  console.log('cookies', req.cookies);
   const token = req?.cookies?.token;
+  console.log('token', token);
+
   if (!token) {
     return res.status(401).send({ message: 'Unauthorized Access' });
   }
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
     if (error) {
+      console.log('verify error', error);
       return res.status(401).send({ message: 'Unauthorized Access' });
     }
+    console.log('verify decoded', decoded);
+    req.decodedToken = decoded;
     next();
   });
 };
@@ -53,24 +58,32 @@ async function run() {
     await client.connect();
     console.log('Checked mongodb connection');
 
-    // ###########################################################
+    //✅✅✅ ###########################################################
     const database = client.db('jobsDB');
     const jobsCollection = database.collection('jobsColl');
     const applicationsCollection = database.collection('applicationsColl');
 
-    // ######################       JWT    ###########################
+    // ✅✅✅ ######################       JWT    ###########################
     app.post('/jwt', async (req, res) => {
-      const userInfo = req.body;
-      const token = jwt.sign(userInfo, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      // explicitly extract email
+      const { email } = req.body;
+      // validate email exists
+      if (!email) {
+        return res.status(400).send({ message: 'Email required' });
+      }
+      // sign only the email into JWT
+      const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      // set cookie securely
       res
         .cookie('token', token, {
           httpOnly: true,
           secure: false,
+          sameSite: 'lax',
         })
         .send({ success: true });
     });
 
-    // ######################       JOBS     ###########################
+    // ✅✅✅ ######################       JOBS     ###########################
     app.get('/jobs', async (req, res) => {
       let email = req.query.email;
       let query = {};
@@ -96,13 +109,20 @@ async function run() {
       res.send(result);
     });
 
-    // ####################     APPLICATIONS    ########################
+    // ✅✅✅ ####################     APPLICATIONS    ########################
     app.get('/applications/me', verifyToken, async (req, res) => {
       const query = { applicant_email: req.query.email };
       const cursor = applicationsCollection.find(query);
-      const result = await cursor.toArray();
+
+      console.log('Token Email:', req.decodedToken.email);
+      console.log('Query Email:', req.query.email);
+      if (req.decodedToken.email !== req.query.email) {
+        return res.status(403).send({ message: 'Forbidded Access' });
+      }
       // console.log('cuk cuk', req.cookies);
-      console.log('inside api callback');
+      // console.log('inside api callback');
+      const result = await cursor.toArray();
+
       // aggregate data via loop
       for (const applicationItem of result) {
         // console.log(applicationItem.job_id);
@@ -166,7 +186,7 @@ async function run() {
       res.send(result);
     });
 
-    // ###########################################################
+    //✅✅✅ ###########################################################
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
     console.log('Pinged your deployment');
