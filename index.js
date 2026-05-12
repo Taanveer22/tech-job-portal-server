@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
+      'https://tech-job-portal-client.vercel.app',
       'https://tech-job-portal-45406.web.app',
       'https://tech-job-portal-45406.firebaseapp.com',
     ],
@@ -81,6 +82,7 @@ async function run() {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
+          domain: '.vercel.app',
         })
         .send({ success: true });
     });
@@ -92,6 +94,7 @@ async function run() {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
+          domain: '.vercel.app',
         })
         .send({ success: true });
     });
