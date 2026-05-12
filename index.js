@@ -25,9 +25,9 @@ app.use(cookieParser());
 
 //Custom Middleware Setup for JWT
 const verifyToken = (req, res, next) => {
-  console.log('cookies', req.cookies);
+  // console.log('cookies', req.cookies);
   const token = req?.cookies?.token;
-  console.log('token', token);
+  // console.log('token', token);
 
   if (!token) {
     return res.status(401).send({ message: 'Unauthorized Access' });
@@ -35,10 +35,10 @@ const verifyToken = (req, res, next) => {
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
     if (error) {
-      console.log('verify error', error);
+      // console.log('verify error', error);
       return res.status(401).send({ message: 'Unauthorized Access' });
     }
-    console.log('verify decoded', decoded);
+    // console.log('verify decoded', decoded);
     req.user = decoded;
     next();
   });
@@ -59,7 +59,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server
-    await client.connect();
+    // await client.connect();
     console.log('Checked mongodb connection');
 
     //✅✅✅ ############################ DB ############################
@@ -79,8 +79,8 @@ async function run() {
       res
         .cookie('token', token, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         })
         .send({ success: true });
     });
@@ -90,8 +90,8 @@ async function run() {
       res
         .clearCookie('token', {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         })
         .send({ success: true });
     });
@@ -127,8 +127,9 @@ async function run() {
       const query = { applicant_email: req.query.email };
       const cursor = applicationsCollection.find(query);
 
-      console.log('Token Email:', req.user.email);
-      console.log('Query Email:', req.query.email);
+      // console.log('Token Email:', req.user.email);
+      // console.log('Query Email:', req.query.email);
+
       if (req.user.email !== req.query.email) {
         return res.status(403).send({ message: 'Forbidden Access' });
       }
@@ -201,7 +202,7 @@ async function run() {
 
     //✅✅✅ ########################## END ###############################
     // Send a ping to confirm a successful connection
-    await client.db('admin').command({ ping: 1 });
+    // await client.db('admin').command({ ping: 1 });
     console.log('Pinged your deployment');
   } catch (error) {
     console.log(error);
