@@ -94,7 +94,7 @@ async function run() {
         .send({ success: true });
     });
 
-    // ✅✅✅ ###################       JOBS     ######################
+    // ✅✅✅ ###################     JOBS     ######################
     app.get('/jobs', async (req, res) => {
       let email = req.query.email;
       let query = {};
@@ -203,6 +203,7 @@ async function run() {
     console.log('Pinged your deployment');
   } catch (error) {
     console.log(error);
+    res.status(500).send({ message: 'Server Error' });
   }
 }
 run();
