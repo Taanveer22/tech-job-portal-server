@@ -79,8 +79,8 @@ async function run() {
       res
         .cookie('token', token, {
           httpOnly: true,
-          secure: false,
-          sameSite: 'lax',
+          secure: true,
+          sameSite: 'none',
         })
         .send({ success: true });
     });
@@ -90,8 +90,8 @@ async function run() {
       res
         .clearCookie('token', {
           httpOnly: true,
-          secure: false,
-          sameSite: 'lax',
+          secure: true,
+          sameSite: 'none',
         })
         .send({ success: true });
     });
