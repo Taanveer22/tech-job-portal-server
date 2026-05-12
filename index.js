@@ -57,7 +57,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server
-    await client.connect();
+    // await client.connect();
     console.log('Checked mongodb connection');
 
     //✅✅✅ #######################    DB    ########################
@@ -124,7 +124,6 @@ async function run() {
     app.get('/applications/me', verifyToken, async (req, res) => {
       const query = { applicant_email: req.query.email };
       const cursor = applicationsCollection.find(query);
-
       // console.log('Token Email:', req.user.email);
       // console.log('Query Email:', req.query.email);
 
@@ -198,9 +197,9 @@ async function run() {
       res.send(result);
     });
 
-    //✅✅✅ ########################## END ###############################
+    //✅✅✅ #################### ERROR ###########################
     // Send a ping to confirm a successful connection
-    await client.db('admin').command({ ping: 1 });
+    // await client.db('admin').command({ ping: 1 });
     console.log('Pinged your deployment');
   } catch (error) {
     console.log(error);
@@ -217,3 +216,6 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`this sever is running on port no : ${PORT}`);
 });
+
+// Correct for Vercel Server Start
+// module.exports = app;
