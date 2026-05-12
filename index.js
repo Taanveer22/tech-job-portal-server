@@ -68,8 +68,11 @@ async function run() {
     //creating Token
     app.post('/auth/login', (req, res) => {
       const user = req.body;
+      if (!user?.email) {
+        return res.status(400).send({ message: 'Email required' });
+      }
       //get payload/data
-      const token = jwt.sign({ email: user.email }, process.env.ACCESS_TOKEN_SECRET, {
+      const token = jwt.sign({ email: user?.email }, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '1h',
       });
       // set cookie securely
@@ -77,7 +80,7 @@ async function run() {
         .cookie('token', token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         })
         .send({ success: true });
     });
@@ -88,7 +91,7 @@ async function run() {
         .clearCookie('token', {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         })
         .send({ success: true });
     });
@@ -122,17 +125,14 @@ async function run() {
     // ✅✅✅ ####################     APPLICATIONS    ########################
     app.get('/applications/me', verifyToken, async (req, res) => {
       const query = { applicant_email: req.query.email };
-      const cursor = applicationsCollection.find(query);
+      // console.log('cuk cuk', req.cookies);
+      if (req.user.email !== req.query.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
       // console.log('Token Email:', req.user.email);
       // console.log('Query Email:', req.query.email);
-
-      if (req.user.email !== req.query.email) {
-        return res.status(403).send({ message: 'Forbidden Access' });
-      }
-      // console.log('cuk cuk', req.cookies);
-      // console.log('inside api callback');
+      const cursor = applicationsCollection.find(query);
       const result = await cursor.toArray();
-
       // aggregate data via loop
       for (const applicationItem of result) {
         // console.log(applicationItem.job_id);
@@ -202,7 +202,6 @@ async function run() {
     console.log('Pinged your deployment');
   } catch (error) {
     console.log(error);
-    res.status(500).send({ message: 'Server Error' });
   }
 }
 run();
@@ -213,9 +212,9 @@ app.get('/', (req, res) => {
 });
 
 //Server Start
-app.listen(PORT, () => {
-  console.log(`this sever is running on port no : ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`this sever is running on port no : ${PORT}`);
+// });
 
-// Correct for Vercel Server Start
-// module.exports = app;
+//Vercel Server Start
+module.exports = app;
