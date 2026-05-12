@@ -39,7 +39,7 @@ const verifyToken = (req, res, next) => {
       return res.status(401).send({ message: 'Unauthorized Access' });
     }
     console.log('verify decoded', decoded);
-    req.decodedToken = decoded;
+    req.user = decoded;
     next();
   });
 };
@@ -59,31 +59,39 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server
-    // await client.connect();
+    await client.connect();
     console.log('Checked mongodb connection');
 
-    //✅✅✅ ###########################################################
+    //✅✅✅ ############################ DB ############################
     const database = client.db('jobsDB');
     const jobsCollection = database.collection('jobsColl');
     const applicationsCollection = database.collection('applicationsColl');
 
     // ✅✅✅ ######################       JWT    ###########################
     //creating Token
-    app.post('/auth/login', async (req, res) => {
-      // explicitly extract email
-      const { email } = req.body;
-      // validate email exists
-      if (!email) {
-        return res.status(400).send({ message: 'Email required' });
-      }
-      // sign only the email into JWT
-      const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+    app.post('/auth/login', (req, res) => {
+      const user = req.body;
+      //get payload/data
+      const token = jwt.sign({ email: user.email }, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '1h',
+      });
       // set cookie securely
       res
         .cookie('token', token, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
+          secure: false,
+          sameSite: 'lax',
+        })
+        .send({ success: true });
+    });
+
+    // deleting token
+    app.post('/auth/logout', (req, res) => {
+      res
+        .clearCookie('token', {
+          httpOnly: true,
+          secure: false,
+          sameSite: 'lax',
         })
         .send({ success: true });
     });
@@ -119,10 +127,10 @@ async function run() {
       const query = { applicant_email: req.query.email };
       const cursor = applicationsCollection.find(query);
 
-      console.log('Token Email:', req.decodedToken.email);
+      console.log('Token Email:', req.user.email);
       console.log('Query Email:', req.query.email);
-      if (req.decodedToken.email !== req.query.email) {
-        return res.status(403).send({ message: 'Forbidded Access' });
+      if (req.user.email !== req.query.email) {
+        return res.status(403).send({ message: 'Forbidden Access' });
       }
       // console.log('cuk cuk', req.cookies);
       // console.log('inside api callback');
@@ -191,9 +199,9 @@ async function run() {
       res.send(result);
     });
 
-    //✅✅✅ ###########################################################
+    //✅✅✅ ########################## END ###############################
     // Send a ping to confirm a successful connection
-    // await client.db('admin').command({ ping: 1 });
+    await client.db('admin').command({ ping: 1 });
     console.log('Pinged your deployment');
   } catch (error) {
     console.log(error);
