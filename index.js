@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
-      'https://tech-job-portal-client.vercel.app',
+      'http://localhost:5173',
       'https://tech-job-portal-45406.web.app',
       'https://tech-job-portal-45406.firebaseapp.com',
     ],
@@ -27,7 +27,7 @@ app.use(cookieParser());
 const verifyToken = (req, res, next) => {
   // console.log('cookies', req.cookies);
   const token = req?.cookies?.token;
-  // console.log('token', token);
+  console.log('token', token);
   if (!token) {
     return res.status(401).send({ message: 'Unauthorized Access' });
   }
@@ -45,7 +45,6 @@ const verifyToken = (req, res, next) => {
 // Database Setup
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.89rnkti.mongodb.net/?appName=Cluster0`;
-// console.log(uri);
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -56,16 +55,17 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server
-    // await client.connect();
+    await client.connect();
     console.log('Checked mongodb connection');
+    await client.db('admin').command({ ping: 1 });
+    console.log('Pinged your deployment');
 
-    //✅✅✅ #######################    DB    ########################
+    //✅✅✅ #################    DB    ##################
     const database = client.db('jobsDB');
     const jobsCollection = database.collection('jobsColl');
     const applicationsCollection = database.collection('applicationsColl');
 
-    // ✅✅✅ ######################    JWT    ###########################
+    // ✅✅✅ ############    JWT    ##################
     //creating Token
     app.post('/auth/login', (req, res) => {
       const user = req.body;
@@ -74,15 +74,15 @@ async function run() {
       }
       //get payload/data
       const token = jwt.sign({ email: user?.email }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: '1h',
+        expiresIn: '7d',
       });
       // set cookie securely
       res
         .cookie('token', token, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
-          domain: '.vercel.app',
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          maxAge: 7 * 24 * 60 * 60 * 1000,
         })
         .send({ success: true });
     });
@@ -92,14 +92,14 @@ async function run() {
       res
         .clearCookie('token', {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
-          domain: '.vercel.app',
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          maxAge: 0,
         })
         .send({ success: true });
     });
 
-    // ✅✅✅ ###################     JOBS     ######################
+    // ✅✅✅ ##############     JOBS     ###############
     app.get('/jobs', async (req, res) => {
       let email = req.query.email;
       let query = {};
@@ -125,7 +125,7 @@ async function run() {
       res.send(result);
     });
 
-    // ✅✅✅ ####################     APPLICATIONS    ########################
+    // ✅✅✅ ##############     APPLICATIONS    #################
     app.get('/applications/me', verifyToken, async (req, res) => {
       const query = { applicant_email: req.query.email };
       // console.log('cuk cuk', req.cookies);
@@ -178,6 +178,8 @@ async function run() {
         },
       };
       const result3 = await jobsCollection.updateOne(queryAgain, updateDoc);
+      console.log(result3);
+      // ⚡ FIXED: Send 'result' (the application insert metadata)
       res.send(result);
     });
 
@@ -198,13 +200,10 @@ async function run() {
       const result = await applicationsCollection.deleteOne(query);
       res.send(result);
     });
-
-    //✅✅✅ #################### ERROR ###########################
-    // Send a ping to confirm a successful connection
-    // await client.db('admin').command({ ping: 1 });
-    console.log('Pinged your deployment');
   } catch (error) {
     console.log(error);
+    // ✅ Better
+    process.exit(1);
   }
 }
 run();
@@ -214,10 +213,7 @@ app.get('/', (req, res) => {
   res.send('server is running');
 });
 
-//Server Start
-// app.listen(PORT, () => {
-//   console.log(`this sever is running on port no : ${PORT}`);
-// });
-
-//Vercel Server Start
-module.exports = app;
+// Server Start
+app.listen(PORT, () => {
+  console.log(`this sever is running on port no : ${PORT}`);
+});
