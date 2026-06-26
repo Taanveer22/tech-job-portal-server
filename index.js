@@ -114,7 +114,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post('/jobs', async (req, res) => {
+    app.post('/jobs/add', async (req, res) => {
       const doc = req.body;
       const result = await jobsCollection.insertOne(doc);
       res.send(result);
@@ -123,6 +123,12 @@ async function run() {
     app.get('/jobs/details/:id', async (req, res) => {
       const query = { _id: new ObjectId(req.params.id) };
       const result = await jobsCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.delete('/jobs/remove/:id', async (req, res) => {
+      const query = { _id: new ObjectId(req.params.id) };
+      const result = await jobsCollection.deleteOne(query);
       res.send(result);
     });
 
@@ -196,7 +202,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete('/applications/me/:id', async (req, res) => {
+    app.delete('/applications/remove/:id', async (req, res) => {
       const query = { _id: new ObjectId(req.params.id) };
       const result = await applicationsCollection.deleteOne(query);
       res.send(result);
