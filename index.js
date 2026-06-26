@@ -67,15 +67,16 @@ async function run() {
 
     // ✅✅✅ ############    JWT    ##################
     //creating Token
-    app.post('/auth/login', (req, res) => {
-      const user = req.body;
-      if (!user?.email) {
+    app.post('/jwt/login', (req, res) => {
+      const { email } = req.body;
+      if (!email) {
         return res.status(400).send({ message: 'Email required' });
       }
       //get payload/data
-      const token = jwt.sign({ email: user?.email }, process.env.ACCESS_TOKEN_SECRET, {
+      const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '7d',
       });
+      console.log('payload token', token);
       // set cookie securely
       res
         .cookie('token', token, {
@@ -88,13 +89,12 @@ async function run() {
     });
 
     // deleting token
-    app.post('/auth/logout', (req, res) => {
+    app.post('/jwt/logout', (req, res) => {
       res
         .clearCookie('token', {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-          maxAge: 0,
         })
         .send({ success: true });
     });
