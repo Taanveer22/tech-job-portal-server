@@ -5,11 +5,15 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 
-//App Setup
+//App Instance
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 //Middleware Setup
+app.set('trust proxy', 1);
+app.use(express.json());
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: [
@@ -20,10 +24,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
-app.use(cookieParser());
 
-//Custom Middleware Setup for JWT
 const verifyToken = (req, res, next) => {
   // console.log('cookies', req.cookies);
   const token = req?.cookies?.token;
@@ -33,10 +34,10 @@ const verifyToken = (req, res, next) => {
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
     if (error) {
-      // console.log('verify error', error);
+      // console.log('verify token error', error);
       return res.status(401).send({ message: 'Unauthorized Access' });
     }
-    // console.log('verify decoded', decoded);
+    // console.log('verify token decoded', decoded);
     req.user = decoded;
     next();
   });
@@ -202,7 +203,6 @@ async function run() {
     });
   } catch (error) {
     console.log(error);
-    // ✅ Better
     process.exit(1);
   }
 }
