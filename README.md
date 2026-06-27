@@ -39,26 +39,6 @@ Clone the repository:
 bash
 git clone https://github.com/Taanveer22/tech-job-portal-server.git
 cd tech-job-portal-server
-Install dependencies:
-
-bash
-npm install
-Create a .env file with:
-
-Code
-DB_USER=your_db_user
-DB_PASS=your_db_password
-ACCESS_TOKEN_SECRET=your_secret
-PORT=5000
-NODE_ENV=development
-Run the server:
-
-bash
-npm start
-
-## 🌐 Deployment
-
-Frontend: Firebase Hosting → tech-job-portal-45406.web.app
 
 ## 📌 Future Improvements
 
