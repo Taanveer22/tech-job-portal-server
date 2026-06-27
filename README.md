@@ -1,0 +1,76 @@
+## Tech Job Portal Server
+
+A backend server for the Tech Job Portal application, built with Express.js, MongoDB, and JWT authentication. It powers job listings, applications, and role-based access for buyers and freelancers.
+
+## 🌐 Deployment
+
+- **Live Site**: [https://tech-job-portal-45406.web.app/](https://tech-job-portal-45406.web.app/)
+
+## 🚀 Features
+
+Authentication: Secure login/logout with JWT and cookies
+
+Job Management: CRUD operations for job postings
+
+Applications: Apply to jobs, track status, and manage applications
+
+Reviews: Collect and display job-related reviews
+
+Search & Filters: Dynamic search, sorting, and pagination
+
+Role-based Access: Buyer and Freelancer dashboards (future improvement)
+
+## 🛠 Tech Stack
+
+Backend Framework: Express.js
+
+Database: MongoDB
+
+Authentication: JWT + Cookies
+
+Hosting: Vercel
+
+Environment Management: dotenv
+
+## ⚙️ Setup Instructions
+
+Clone the repository:
+
+bash
+git clone https://github.com/Taanveer22/tech-job-portal-server.git
+cd tech-job-portal-server
+Install dependencies:
+
+bash
+npm install
+Create a .env file with:
+
+Code
+DB_USER=your_db_user
+DB_PASS=your_db_password
+ACCESS_TOKEN_SECRET=your_secret
+PORT=5000
+NODE_ENV=development
+Run the server:
+
+bash
+npm start
+
+## 🌐 Deployment
+
+Frontend: Firebase Hosting → tech-job-portal-45406.web.app
+
+## 📌 Future Improvements
+
+Role-based dashboards (Admin, Buyer, Freelancer)
+
+Enhanced UI with TailwindCSS and Daisy UI
+
+Real-time notifications for bids and job updates
+
+Advanced search filters (salary range, skills, etc.)
+
+## 👨‍💻 Author
+
+Developed by Taanveer  
+GitHub: Taanveer22
